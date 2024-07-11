@@ -10,9 +10,6 @@ import java.net.{InetAddress, InetSocketAddress, Socket}
 object DBManager {
 
   private val logger = LoggerFactory.getLogger("database")
-//  private val config: Config = ConfigFactory.load()
-
-//  lazy val PostgresSQL: JdbcBackend.Database = Database.forConfig("deepsea")
   lazy val PostgresSQL: JdbcBackend.Database = Database.forURL("jdbc:postgresql://192.168.1.26:5432/deepsea", "deepsea", driver = "org.postgresql.Driver")
 
 
@@ -54,5 +51,4 @@ object DBManager {
         false
     }
   }
-
 }

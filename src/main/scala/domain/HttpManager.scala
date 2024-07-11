@@ -11,7 +11,7 @@ import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
 import domain.deepsea.DeepseaManager
-import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetProjectDoclist, GetProjectNames, GetTrustedUsers, SaveFilters, Str}
+import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetProjectDoclist, GetProjectNames, GetTrustedUsers, GetWeightData, SaveFilters, Str}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
@@ -55,7 +55,7 @@ object HttpManager {
           },
           (get & path("projectDoclist")  & parameter("project")) { project =>  //получаем данные для doclist по названию проекта
             println("project")
-            println(project)
+//            println(project)
             println("projectDoclist")
             forward(deepsea.ask(ref => GetProjectDoclist(ref, project)))
           },
@@ -68,6 +68,10 @@ object HttpManager {
             print("id ")
             println(id)
             forward(deepsea.ask(ref => GetTrustedUsers(ref, id.toInt)))
+          },
+          (get & path("weightData")) {
+            println("weightData")
+            forward(deepsea.ask(ref => GetWeightData(ref)))
           },
         )
       }
