@@ -11,7 +11,7 @@ import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
 import domain.deepsea.DeepseaManager
-import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetProjectDoclist, GetProjectNames, GetTrustedUsers, GetWeightData, SaveFilters, Str}
+import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetIssueStages, GetProjectDoclist, GetProjectNames, GetTrustedUsers, GetWeightData, SaveFilters, Str}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
@@ -34,44 +34,32 @@ object HttpManager {
       val route: Route = cors() {
         concat(
           (post & path("saveFilters") & entity(as[String])) { (json) =>
-            println(json)
             forward(deepsea.ask(ref => SaveFilters(json, ref)))
           },
           (get & path("filtersSaved")  & parameter("userId")) { userId =>
-            println("userId")
-            println(userId)
-            println("filtersSaved")
             forward(deepsea.ask(ref => GetFilterSaved(ref, userId.toInt)))
           },
           (get & path("deleteFilterSaved") & parameter("id")) { id =>
-            println("id")
-            println(id)
-            println("deleteFilterSaved")
             forward(deepsea.ask(ref => DeleteFilterSaved(ref, id.toInt)))
           },
           (get & path("str") & entity(as[String])) { (json) =>
-            println("http ", json)
             forward(deepsea.ask(ref => Str(json, ref)))
           },
           (get & path("projectDoclist")  & parameter("project")) { project =>  //получаем данные для doclist по названию проекта
-            println("project")
-//            println(project)
-            println("projectDoclist")
             forward(deepsea.ask(ref => GetProjectDoclist(ref, project)))
           },
           (get & path("projectNames")) {
-            println("projectNames")
             forward(deepsea.ask(ref => GetProjectNames(ref)))
           },
           (get & path("trustedUsers") & parameter("id")) { id =>
-            println("trustedUsers")
-            print("id ")
-            println(id)
             forward(deepsea.ask(ref => GetTrustedUsers(ref, id.toInt)))
           },
-          (get & path("weightData")) {
-            println("weightData")
-            forward(deepsea.ask(ref => GetWeightData(ref)))
+          (get & path("weightData")  & parameter("project")) { project =>
+            forward(deepsea.ask(ref => GetWeightData(ref, project)))
+          },
+          (get & path("issueStages")  & parameter("project")) { project =>
+
+            forward(deepsea.ask(ref => GetIssueStages(ref, project.toInt)))
           },
         )
       }

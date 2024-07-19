@@ -11,6 +11,7 @@ import io.circe.parser._
 import io.circe.syntax.EncoderOps
 import org.slf4j.LoggerFactory
 import shapeless.Lazy.apply
+import slick.jdbc.GetResult
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.{TableQuery, Tag}
 
@@ -27,7 +28,8 @@ object DeepseaManager {
 
   case class GetTrustedUsers(replyTo: ActorRef[HttpResponse], userId: Int) extends DeepseaManagerMessage
 
-  case class GetWeightData(replyTo: ActorRef[HttpResponse]) extends DeepseaManagerMessage
+  case class GetWeightData(replyTo: ActorRef[HttpResponse], project: String) extends DeepseaManagerMessage
+  case class GetIssueStages(replyTo: ActorRef[HttpResponse], project_id: Int) extends DeepseaManagerMessage
 
   case class SaveFilters(json: String, replyTo: ActorRef[HttpResponse]) extends DeepseaManagerMessage
 
@@ -48,6 +50,7 @@ object DeepseaManager {
   @JsonCodec case class IssueType(id: Int, type_name: String, visibility_documents: Int)
   @JsonCodec case class IssueStages(stage_name: String, stage_date: Long, id_project: Int, issue_type: String)
   @JsonCodec case class IssueInDoclist(id: Int, doc_number: String, issue_name: String, issue_type: String, project: String, department: String, contract: String, status: String, revision: String, period: String, issue_comment: String, author_comment: String, contract_due_date: Long)
+  @JsonCodec case class Weight(task_id: Int, doc_number: String, issue_name: String, department: String, project: String, status: String, room: Int, room_name: String, name: String, directory_id: Int, t_weight: Int, perc : Int, x_cog: Int, y_cog: Int, z_cog: Int, mx: Int, my: Int, mz: Int, date: Long, stock_code: String)
   @JsonCodec case class IssueProjects(id: Int, name: String)
 
   class ProjectTable(tag: Tag) extends Table[Project](tag, "issue_projects") {
@@ -63,7 +66,6 @@ object DeepseaManager {
     val stage_date = column[Long]("stage_date")
     val id_project = column[Int]("id_project")
     val issue_type = column[String]("issue_type")
-
     override def * = (stage_name, stage_date, id_project, issue_type) <> (IssueStages.tupled, IssueStages.unapply)
   }
 
@@ -171,6 +173,7 @@ object DeepseaManager {
             replyTo.tell(TextResponse("server error"))
         }
         Behaviors.same
+
       case SaveFilters(json, replyTo) =>
         println("postFiltersSaved")
         decode[Filter](json) match {
@@ -214,10 +217,37 @@ object DeepseaManager {
         getProjectDoclist(project).onComplete {
           case Success(value) =>
             println("success case GetProjectDoclist")
+//            println(value.asJson.noSpaces)
+            replyTo.tell(TextResponse(value.asJson.noSpaces))
+          case Failure(exception) =>
+            println("failure case GetProjectDoclist")
+            logger.error(exception.toString)
+            replyTo.tell(TextResponse("server error"))
+        }
+        Behaviors.same
+
+      case GetWeightData(replyTo, project) =>
+        println("case GetWeightData(replyTo)")
+        getWeightData(project).onComplete {
+          case Success(value) =>
+            println("success case GetWeightData")
             println(value.asJson.noSpaces)
             replyTo.tell(TextResponse(value.asJson.noSpaces))
           case Failure(exception) =>
-            println("failure case GetFiltersSaved(replyTo)")
+            println("failure case GetWeightData")
+            logger.error(exception.toString)
+            replyTo.tell(TextResponse("server error"))
+        }
+        Behaviors.same
+      case GetIssueStages(replyTo, project_id) =>
+        println("caseGetIssueStages(replyTo)")
+        getIssueStages(project_id).onComplete {
+          case Success(value) =>
+            println("success case GetIssueStages")
+            println(value.asJson.noSpaces)
+            replyTo.tell(TextResponse(value.asJson.noSpaces))
+          case Failure(exception) =>
+            println("failure case GetIssueStages")
             logger.error(exception.toString)
             replyTo.tell(TextResponse("server error"))
         }
@@ -225,6 +255,9 @@ object DeepseaManager {
     }
   }
 
+  private def getIssueStages(project_id: Int): Future[Seq[IssueStages]] = {
+    PostgresSQL.run(IssueStagesTable.filter(_.id_project === project_id).result)
+  }
   private def getProjectNames(): Future[Seq[Project]] = {
     //    PostgresSQL.run(ProjectTable.filter(_.status === 0).result)
     PostgresSQL.run(ProjectTable.filter(_.status === 0).filter(_.name =!= "-").result)
@@ -248,6 +281,11 @@ object DeepseaManager {
   }
 
   private def getProjectDoclist(project: String): Future[Seq[IssueInDoclist]] = {
+//    val q = scala.io.Source.fromResource("queres/IssueInDoclist.sql").mkString
+//    println(q)
+//    implicit val resultIssueInDoclist = GetResult(r => IssueInDoclist(r.nextInt, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextLong))
+//
+//   PostgresSQL.run(sql"$q".as[IssueInDoclist])
     PostgresSQL.run(sql"""SELECT issue.id, doc_number, issue_name, issue_type, project, department, contract, issue.status, revision, period, issue_comment, author_comment, (select stage_date as contract_due_date from issue_stages where issue_stages.issue_type = issue.issue_type and issue_stages.stage_name = period and issue_stages.id_project = ip.id)
                            FROM issue
                            LEFT JOIN issue_types ON issue.issue_type = issue_types.type_name
@@ -258,6 +296,42 @@ object DeepseaManager {
           id, doc_number, issue_name, issue_type: String, project: String, department: String,  contract: String, status: String, revision: String, period: String, issue_comment: String, author_comment: String, contract_due_date: Long
           ) =>
           IssueInDoclist(id, doc_number, issue_name, issue_type: String, project: String, department: String,  contract: String, status: String, revision: String, period: String, issue_comment: String, author_comment: String, contract_due_date: Long)
+      }
+    }
+  }
+
+  private def getWeightData(project: String): Future[Seq[Weight]] = {
+    PostgresSQL.run(sql"""select spec.task_id,
+       issue.doc_number,
+       issue.issue_name,
+       issue.department,
+       issue.project,
+       issue.status,
+       spec.room,
+       foran_data.room_name,
+       materials.name,
+       materials.directory_id,
+       spec."t_weight",
+       round(spec."t_weight"/(select sum ("t_weight")from issue_esp)*100, 1) as "%",
+       foran_data.x_cog,
+       foran_data.y_cog,
+       foran_data.z_cog,
+       spec."t_weight"*foran_data.x_cog as "Mx",
+       spec."t_weight"*foran_data.y_cog as "My",
+       spec."t_weight"*foran_data.z_cog as "Mz",
+       spec.date,
+       materials.stock_code
+from issue_esp as spec
+         inner join issue on issue.id = spec.task_id
+         inner join materials on spec.materials_id = materials.id
+         inner join foran_data on spec.foran_data_id = foran_data.id
+where (task_id, date) in (select task_id, max(date) from issue_esp group by task_id)and issue.project = $project
+order by spec.task_id""".as[(Int, String, String, String, String, String, Int, String, String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Long, String)]).map { rows =>
+      rows.map {
+        case (
+          task_id: Int, doc_number: String, issue_name: String, department: String, project: String, status: String, room: Int, room_name: String, name: String, directory_id: Int, t_weight: Int, perc : Int, x_cog: Int, y_cog: Int, z_cog: Int, mx: Int, my: Int, mz: Int, date: Long, stock_code: String
+          ) =>
+          Weight(task_id: Int, doc_number: String, issue_name: String, department: String, project: String, status: String, room: Int, room_name: String, name: String, directory_id: Int, t_weight: Int, perc : Int, x_cog: Int, y_cog: Int, z_cog: Int, mx: Int, my: Int, mz: Int, date: Long, stock_code: String)
       }
     }
   }
