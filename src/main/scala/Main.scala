@@ -1,4 +1,4 @@
-import domain.deepsea.DeepseaManager
+import domain.deepsea.{DeepseaManager, ForanManager}
 import domain.{DBManager, HttpManager}
 import org.apache.pekko.NotUsed
 import org.apache.pekko.actor.typed.scaladsl.{Behaviors, Routers}
@@ -27,7 +27,10 @@ object Main {
       val deepsea = context.spawn(Routers.pool(poolSize = 3) {
         Behaviors.supervise(DeepseaManager()).onFailure[Exception](SupervisorStrategy.restart)
       }, "deepsea")
-      HttpManager(context.system, deepsea)
+      val foran = context.spawn(Routers.pool(poolSize = 3) {
+        Behaviors.supervise(ForanManager()).onFailure[Exception](SupervisorStrategy.restart)
+      }, "foran")
+      HttpManager(context.system, deepsea, foran)
       Behaviors.empty
     }
   }

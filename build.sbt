@@ -21,6 +21,7 @@ val AkkaHttpCors = "1.2.0"
 val SLF4JVersion = "2.0.13"
 val SlickVersion = "3.5.1"
 val PostgresSQLVersion = "42.7.3"
+val OracleDBVersion = "21.6.0.0.1"
 val MongoDBVersion = "4.10.0"
 val CirceVersion = "0.14.7"
 
@@ -38,5 +39,6 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser" % CirceVersion,
   "com.typesafe.slick" %% "slick" % SlickVersion,
   "com.typesafe.slick" %% "slick-hikaricp" % SlickVersion,
-  "org.postgresql" % "postgresql" % PostgresSQLVersion
+  "org.postgresql" % "postgresql" % PostgresSQLVersion,
+  "com.oracle.database.jdbc.debug" % "ojdbc8_g" % OracleDBVersion
 )
