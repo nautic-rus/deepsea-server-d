@@ -14,7 +14,6 @@ object DBManager {
 
   lazy val PostgresSQL: JdbcBackend.Database = Database.forURL("jdbc:postgresql://192.168.1.26:5432/deepsea", "deepsea", driver = "org.postgresql.Driver")
   lazy val ForanDB: JdbcBackend.Database = Database.forURL("jdbc:oracle:thin:@192.168.1.12:1521:ORA3DB", "CN002", "Whatab0utus")
-//lazy val ForanDB: JdbcBackend.Database = Database.
 
   def checkPort(host: String, port: Int): Boolean = {
     try {

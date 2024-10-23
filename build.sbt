@@ -40,5 +40,11 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % SlickVersion,
   "com.typesafe.slick" %% "slick-hikaricp" % SlickVersion,
   "org.postgresql" % "postgresql" % PostgresSQLVersion,
-  "com.oracle.database.jdbc.debug" % "ojdbc8_g" % OracleDBVersion
+  "com.oracle.database.jdbc.debug" % "ojdbc8_g" % OracleDBVersion,
+  //pdf docx apache poi
+//  "org.apache.poi" % "poi" % "5.3.0",
+//  "org.apache.poi" % "poi-ooxml" % "5.3.0",
+//  "org.apache.poi" % "poi-ooxml-lite" % "5.3.0",
+  // iText
+  "com.itextpdf" % "itext7-core" % "7.1.15"
 )

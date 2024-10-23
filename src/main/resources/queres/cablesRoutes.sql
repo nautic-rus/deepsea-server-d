@@ -1,0 +1,1 @@
+select cable_cod, rout_sec from v_cab_routes_area

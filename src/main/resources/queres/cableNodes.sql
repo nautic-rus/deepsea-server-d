@@ -1,0 +1,1 @@
+select cable, rout_area, node from v_cab_route

@@ -58,7 +58,7 @@ object DeepseaManager {
 
   @JsonCodec case class Project(id: Int, name: String, status: Int)
   @JsonCodec case class UserTrust(id: Int, main_user_id: Int, responsible_user_id: Int, trust_action_buttons: Int)
-  @JsonCodec case class Filter(id: Int, user_id: Int, name: String, value: String, showCompleted: Int)
+  @JsonCodec case class Filter(id: Int, user_id: Int, name: String, value: String, showCompleted: Int, page: String)
   @JsonCodec case class Issue(id: Int, doc_number: String, issue_name: String, issue_type: String, project: String, department: String, contract: String, status: String, revision: String, period: String, contract_due_date: Long, issue_comment: String, author_comment: String, removed: Int)
   @JsonCodec case class IssueType(id: Int, type_name: String, visibility_documents: Int)
   @JsonCodec case class IssueStages(stage_name: String, stage_date: Long, id_project: Int, issue_type: String)
@@ -114,8 +114,9 @@ object DeepseaManager {
     val name = column[String]("name")
     val value = column[String]("value")
     val showCompleted = column[Int]("show_completed")
+    val page = column[String]("page")
 
-    override def * = (id, user_id, name, value, showCompleted) <> (Filter.tupled, Filter.unapply)
+    override def * = (id, user_id, name, value, showCompleted, page) <> (Filter.tupled, Filter.unapply)
   }
 
 
@@ -324,35 +325,8 @@ object DeepseaManager {
 //          }
 //        }
         Behaviors.same
-
-
-        //foran oracle
-//      case GetCables(replyTo) =>
-//        println("get cablesssss")
-//        getCables().onComplete {
-//          case Success(value) =>
-//            println(value)
-//            replyTo.tell(TextResponse(value.asJson.noSpaces))
-//          case Failure(exception) =>
-//            logger.error(exception.toString)
-//            replyTo.tell(TextResponse("server error"))
-//        }
-//        Behaviors.same
-
-
     }
   }
-
-//  private def getCables(): Future[Seq[Cables]] = {
-//    println("getCables")
-//    ForanDB.run(CablesTable.result)
-//  }
-
-//  private def getCables(): Future[Seq[Cables]] = {
-//    println("getCables")
-//    ForanDB.run(CablesTable.map(row => Cables(row.seqid, row.code)).result)
-//  }
-
   private def getIssueStages(project_id: Int): Future[Seq[IssueStages]] = {
     PostgresSQL.run(IssueStagesTable.filter(_.id_project === project_id).result)
   }
@@ -365,7 +339,6 @@ object DeepseaManager {
   }
 
   private def getProjectNames(): Future[Seq[Project]] = {
-    //    PostgresSQL.run(ProjectTable.filter(_.status === 0).result)
     PostgresSQL.run(ProjectTable.filter(_.status === 0).filter(_.name =!= "-").result)
   }
 
