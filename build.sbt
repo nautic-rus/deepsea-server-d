@@ -46,5 +46,5 @@ libraryDependencies ++= Seq(
 //  "org.apache.poi" % "poi-ooxml" % "5.3.0",
 //  "org.apache.poi" % "poi-ooxml-lite" % "5.3.0",
   // iText
-  "com.itextpdf" % "itext7-core" % "7.1.15"
+  "com.itextpdf" % "itext7-core" % "8.0.0"
 )

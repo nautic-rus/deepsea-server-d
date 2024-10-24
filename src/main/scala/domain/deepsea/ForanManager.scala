@@ -115,6 +115,9 @@ object ForanManager {
   def getCables(): Future[Seq[Cables]] = {
     println("getCables")
     ForanDB.run(CablesTable.result)
+//   val q = scala.io.Source.fromResource("queres/cables.sql").mkString
+//    implicit val result = GetResult(r => Cables(r.nextInt, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextString, r.nextFloat, r.nextString))
+//    ForanDB.run(sql"#$q".as[Cables])
   }
 
   def getCablesRoutes(): Future[Seq[CableRoutes]] = {
