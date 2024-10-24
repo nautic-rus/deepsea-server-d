@@ -22,7 +22,7 @@ object pdfGenerator {
       val pdf = new PdfDocument(writer)
       val document = new Document(pdf,PageSize.A4.rotate())
 
-      val columnPercentages = Array(10F, 10F, 10F, 10F, 10F, 10F, 10F, 10F,10F)
+      val columnPercentages = Array(10F, 20F, 10F, 7F, 10F, 10F, 10F, 10F,10F)
 
       val totalWidth = PageSize.A4.getHeight
 
@@ -39,7 +39,7 @@ object pdfGenerator {
       fromCell.add(new Paragraph("Откуда идет кабель").setFont(gostFont))
       table.addCell(fromCell)
 
-      val toCell = new Cell(1, 2) // Объединяем на 1 строку и 5 колонок
+      val toCell = new Cell(1, 2)
       toCell.add(new Paragraph("Куда идет кабель").setFont(gostFont))
       table.addCell(toCell)
 
@@ -54,14 +54,19 @@ object pdfGenerator {
         table.addCell(call)
       })
 
-      var i = 4;
+      try {
+        val arr = groupDataBySystem(data)
+        println(arr)
+      } catch {
+        case e: Throwable => println(e.toString)
+      }
+
       //заполняем данными
       try {
         data.foreach { cable => {
-          val nodes = getNodes(cable.cable_id, filteredNodes)
-          if (nodes.nonEmpty) {
-//            table.startNewRow()
-            val cable_specN = cable.cable_spec.replaceAll("""\s*\d+$""", "")
+          val nodes = getNodes(cable.cable_id, filteredNodes)  //ноды конкрутного кабеля
+          if (nodes.nonEmpty) { //если у кабеля есть ноды, то вывожу их
+            val cable_specN = cable.cable_spec_short.replaceAll("""^.*? - """, "")
             table.addCell(new Cell().add(new Paragraph(cable.cable_id).setFont(gostFont)))
             table.addCell(new Cell().add(new Paragraph(cable_specN).setFont(gostFont))) //марка кабеля
             table.addCell(new Cell().add(new Paragraph(cable.section).setFont(gostFont)))
@@ -72,11 +77,10 @@ object pdfGenerator {
             table.addCell(new Cell().add(new Paragraph(cable.to_e_id).setFont(gostFont))) //индекс куда
             table.addCell(new Cell().add(new Paragraph("").setFont(gostFont))) //примечание
 
+            //строка с нодами кабеля
             val nodesCell = new Cell(1, 9)
             nodesCell.add(new Paragraph(nodes).setFont(gostFont))
             table.addCell(nodesCell)
-            i = i + 2;
-            println(i);
           }
         }}
 
@@ -99,9 +103,13 @@ object pdfGenerator {
 
   }
 
-  def getNodes(cable_id: String, data: Seq[CableNodes]): String = {
+  def getNodes(cable_id: String, data: Seq[CableNodes]): String = {  //выбираю ноды конкретного кабеля и формирую строку из них
     data.filter(_.cable_id == cable_id)
       .map(_.node)
       .mkString(", ")
+  }
+
+  def groupDataBySystem(data: Seq[Cables]) {
+    data.groupBy(cable => cable.system)
   }
 }
