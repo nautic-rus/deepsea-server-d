@@ -30,34 +30,32 @@ object ForanManager {
 
   @JsonCodec case class Nodes(node: String, node_type: Int)
   @JsonCodec case class CableNodes(cable_id: String, rout_area: String, node: String)
-  @JsonCodec case class Cables(seqid: Long, cable_id: String, routed_status: String, from_zone_id: String, from_zone_name: String, to_zone_id: String, to_zone_name: String, from_e_id: String, from_e_name: String, to_e_id: String, to_e_name: String, segregation: String, cable_spec: String, section: String, total_length: Float, system: String, cable_spec_short: String )
+  @JsonCodec case class CablesPdf(seqid: Long, cable_id: String, routed_status: String, from_zone_id: String, from_zone_name: String, to_zone_id: String, to_zone_name: String, from_e_id: String, from_e_name: String, to_e_id: String, to_e_name: String, segregation: String, cable_spec: String, section: String, total_length: Float, system: String, cable_spec_short: String )
+  @JsonCodec case class Cables(seqid: Long, cable_id: String, routed_status: String, from_zone_id: String, from_zone_name: String, to_zone_id: String, to_zone_name: String, from_e_id: String, from_e_name: String, to_e_id: String, to_e_name: String, segregation: String, cable_spec: String, section: String, total_length: Float, system: String)
 
 
-//  рабочий код
-//    class CablesTable(tag: Tag) extends Table[Cables](tag, "V_CABLE") {
-//    val seqid = column[Long]("SEQID")
-//    val cable_id = column[String]("CABLE_ID")
-//    val routed_status = column[String]("F_ROUT")
-//    val from_zone_id = column[String]("FROM_E_ZONE_NAME")
-//    val from_zone_name = column[String]("FROM_E_ZONE_DESCR")
-//    val to_zone_id = column[String]("TO_E_ZONE_NAME")
-//    val to_zone_name = column[String]("TO_E_ZONE_DESCR")
-//    val from_e_id = column[String]("FROM_E_ID")
-//    val from_e_name = column[String]("FROM_E_DESCR")
-//    val to_e_id = column[String]("TO_E_ID")
-//    val to_e_name = column[String]("TO_E_DESCR")
-//    val segregation = column[String]("SEGREGATION")
-//    val cable_spec = column[String]("CABLE_SPEC")
-//    val section = column[String]("NOM_SECTION")
-//    val total_length = column[Float]("TOTAL_LENGTH")
-//    val system = column[String]("SYSTEM_DESCR")
-//    val cable_spec_short = column[String]("CABLE_TYPE_DESCR")
-//
-////        override def * = (seqid, cable_id, from_zone_id) <> (Cables.tupled, Cables.unapply)
-//    override def * = (seqid, cable_id, routed_status, from_zone_id, from_zone_name, to_zone_id, to_zone_name, from_e_id, from_e_name, to_e_id, to_e_name, segregation, cable_spec, section, total_length, system, cable_spec_short) <> (Cables.tupled, Cables.unapply)
-//  }
+  //  рабочий код
+    class CablesTable(tag: Tag) extends Table[Cables](tag, "V_CABLE") {
+    val seqid = column[Long]("SEQID")
+    val cable_id = column[String]("CABLE_ID")
+    val routed_status = column[String]("F_ROUT")
+    val from_zone_id = column[String]("FROM_E_ZONE_NAME")
+    val from_zone_name = column[String]("FROM_E_ZONE_DESCR")
+    val to_zone_id = column[String]("TO_E_ZONE_NAME")
+    val to_zone_name = column[String]("TO_E_ZONE_DESCR")
+    val from_e_id = column[String]("FROM_E_ID")
+    val from_e_name = column[String]("FROM_E_DESCR")
+    val to_e_id = column[String]("TO_E_ID")
+    val to_e_name = column[String]("TO_E_DESCR")
+    val segregation = column[String]("SEGREGATION")
+    val cable_spec = column[String]("CABLE_SPEC")
+    val section = column[String]("NOM_SECTION")
+    val total_length = column[Float]("TOTAL_LENGTH")
+    val system = column[String]("SYSTEM_DESCR")
+    override def * = (seqid, cable_id, routed_status, from_zone_id, from_zone_name, to_zone_id, to_zone_name, from_e_id, from_e_name, to_e_id, to_e_name, segregation, cable_spec, section, total_length, system) <> (Cables.tupled, Cables.unapply)
+  }
 
-//  lazy val CablesTable = TableQuery[CablesTable]
+  lazy val CablesTable = TableQuery[CablesTable]
 
   def apply(): Behavior[ForanManagerMessage] = Behaviors.setup { context =>
 
@@ -73,7 +71,6 @@ object ForanManager {
               println(value.length)
               replyTo.tell(TextResponse(value.asJson.noSpaces))
             }
-//            replyTo.tell(TextResponse(value.asJson.noSpaces))
           case Failure(exception) =>
             logger.error(exception.toString)
             replyTo.tell(TextResponse("server error"))
@@ -94,13 +91,16 @@ object ForanManager {
   }
 
 
-  //получаю данные по кабелям через sql чтобы присоединить последний столбец с коротким вариантом марки кабеля
   def getCables(): Future[Seq[Cables]] = {
     println("getCables")
-//    ForanDB.run(CablesTable.result)
+    ForanDB.run(CablesTable.result)
+  }
+  //получаю данные по кабелям через sql чтобы присоединить последний столбец с коротким вариантом марки кабеля
+  def getCablesPdf(): Future[Seq[CablesPdf]] = {
+    println("getCablesPdf")
     val q = scala.io.Source.fromResource("queres/cables.sql").mkString
-    implicit val result = GetResult(r => Cables(r.nextLong, Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), r.nextFloat, Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse("")))
-    ForanDB.run(sql"#$q".as[Cables])
+    implicit val result = GetResult(r => CablesPdf(r.nextLong, Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse(""), r.nextFloat, Option(r.nextString).getOrElse(""), Option(r.nextString).getOrElse("")))
+    ForanDB.run(sql"#$q".as[CablesPdf])
   }
 
   def getCablesNodes(): Future[Seq[CableNodes]] = {
@@ -130,7 +130,7 @@ object ForanManager {
     println("SQL printCablesPdf")
     for {
       filteredNodes <- getFilteredCableNodes()
-      cables <- getCables()
+      cables <- getCablesPdf()
     } yield {
       createPdf(cables, filteredNodes)
     }

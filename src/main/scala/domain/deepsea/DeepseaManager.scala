@@ -36,26 +36,6 @@ object DeepseaManager {
   case class GetMaterialsDirectory(replyTo: ActorRef[HttpResponse], project_id: Int) extends DeepseaManagerMessage
   case class SaveHullEsp(json: String, replyTo: ActorRef[HttpResponse]) extends DeepseaManagerMessage
 
-
-  //foran oracle
-//  case class GetCables(replyTo: ActorRef[HttpResponse]) extends DeepseaManagerMessage
-//
-////  @JsonCodec case class Cables(seqid: Int, from_e: Int, to_e: Int)
-//@JsonCodec case class Cables(seqid: Int, code: String)
-//  class CablesTable(tag: Tag) extends slick.jdbc.OracleProfile.api.Table[Cables](tag, "cable") {
-//    val seqid = column[Int]("seqid")
-//    val code = column[String]("code")
-////    val from_e = column[Int]("from_e")
-////    val to_e = column[Int]("to_e")
-//
-//    override def * = (seqid, code) <> (Cables.tupled, Cables.unapply)
-////    override def * = (seqid, from_e, to_e) <> (Cables.tupled, Cables.unapply)
-//  }
-//
-//  lazy val CablesTable = TableQuery[CablesTable]
-
-
-
   @JsonCodec case class Project(id: Int, name: String, status: Int)
   @JsonCodec case class UserTrust(id: Int, main_user_id: Int, responsible_user_id: Int, trust_action_buttons: Int)
   @JsonCodec case class Filter(id: Int, user_id: Int, name: String, value: String, showCompleted: Int, page: String)

@@ -7,17 +7,19 @@ import com.itextpdf.kernel.geom.PageSize
 import com.itextpdf.kernel.pdf.{PdfDocument, PdfWriter, PdfXrefTable}
 import com.itextpdf.layout.element.{Cell, Paragraph, Table}
 import com.itextpdf.layout.Document
-import domain.deepsea.ForanManager.{CableNodes, Cables}
+import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment, VerticalAlignment}
+import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
 import domain.deepsea.pdfGenerator.getNodes
 
 import java.nio.file.Files
 //
 object pdfGenerator {
-  def createPdf(data: Seq[Cables], filteredNodes: Seq[CableNodes]): String = {
+  def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes]): String = {
     println("cableData in def")
     try {
       val file = Files.createTempFile("spec", ".pdf")
       val gostFont = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/GOSTtypeA.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
+      val gostFontBold = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/gost_2.304_Bold.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
       val writer = new PdfWriter(file.toString)
       val pdf = new PdfDocument(writer)
       val document = new Document(pdf,PageSize.A4.rotate())
@@ -54,35 +56,42 @@ object pdfGenerator {
         table.addCell(call)
       })
 
-      try {
-        val arr = groupDataBySystem(data)
-        println(arr)
-      } catch {
-        case e: Throwable => println(e.toString)
-      }
 
       //заполняем данными
       try {
-        data.foreach { cable => {
-          val nodes = getNodes(cable.cable_id, filteredNodes)  //ноды конкрутного кабеля
-          if (nodes.nonEmpty) { //если у кабеля есть ноды, то вывожу их
-            val cable_specN = cable.cable_spec_short.replaceAll("""^.*? - """, "")
-            table.addCell(new Cell().add(new Paragraph(cable.cable_id).setFont(gostFont)))
-            table.addCell(new Cell().add(new Paragraph(cable_specN).setFont(gostFont))) //марка кабеля
-            table.addCell(new Cell().add(new Paragraph(cable.section).setFont(gostFont)))
-            table.addCell(new Cell().add(new Paragraph(cable.total_length.toString).setFont(gostFont)))
-            table.addCell(new Cell().add(new Paragraph(cable.from_e_id).setFont(gostFont))) //индекс откуда
-            table.addCell(new Cell().add(new Paragraph(cable.from_zone_id).setFont(gostFont))) //помещение откуда
-            table.addCell(new Cell().add(new Paragraph(cable.to_zone_id).setFont(gostFont))) //помещение куда
-            table.addCell(new Cell().add(new Paragraph(cable.to_e_id).setFont(gostFont))) //индекс куда
-            table.addCell(new Cell().add(new Paragraph("").setFont(gostFont))) //примечание
+        val groupedData = data.groupBy(_.system)
+        groupedData.foreach { case (system, cables) =>
+          // Проверяем, есть ли хотя бы один кабель с нодами
+          val cablesWithNodes = cables.filter(cable => getNodes(cable.cable_id, filteredNodes).nonEmpty)
 
-            //строка с нодами кабеля
-            val nodesCell = new Cell(1, 9)
-            nodesCell.add(new Paragraph(nodes).setFont(gostFont))
-            table.addCell(nodesCell)
+          if (cablesWithNodes.nonEmpty) { // Если есть хотя бы один кабель с нодами
+            val systemCell = new Cell(1, 9).add(new Paragraph(system).setTextAlignment(TextAlignment.CENTER).setFont(gostFont).setBold())
+            systemCell.setHorizontalAlignment(HorizontalAlignment.CENTER)
+            table.addCell(systemCell)
+
+
+            val sortedCables = sortWithNumbers(cablesWithNodes.map(_.cable_id)).map(cableId => cablesWithNodes.find(_.cable_id == cableId).get)
+            // Добавляем строки с информацией о кабелях
+            sortedCables.foreach { cable =>
+              val nodes = getNodes(cable.cable_id, filteredNodes) // Ноды конкретного кабеля
+              val cable_specN = cable.cable_spec_short.replaceAll("""^.*? - """, "")
+              table.addCell(new Cell().add(new Paragraph(cable.cable_id).setFont(gostFont)))
+              table.addCell(new Cell().add(new Paragraph(cable_specN).setFont(gostFont))) // Марка кабеля
+              table.addCell(new Cell().add(new Paragraph(cable.section).setFont(gostFont)))
+              table.addCell(new Cell().add(new Paragraph(cable.total_length.toString).setFont(gostFont)))
+              table.addCell(new Cell().add(new Paragraph(cable.from_e_id).setFont(gostFont))) // Индекс откуда
+              table.addCell(new Cell().add(new Paragraph(cable.from_zone_id).setFont(gostFont))) // Помещение откуда
+              table.addCell(new Cell().add(new Paragraph(cable.to_zone_id).setFont(gostFont))) // Помещение куда
+              table.addCell(new Cell().add(new Paragraph(cable.to_e_id).setFont(gostFont))) // Индекс куда
+              table.addCell(new Cell().add(new Paragraph("").setFont(gostFont))) // Примечание
+
+              // Строка с нодами кабеля
+              val nodesCell = new Cell(1, 9)
+              nodesCell.add(new Paragraph(nodes).setFont(gostFont))
+              table.addCell(nodesCell)
+            }
           }
-        }}
+        }
 
         // Добавление таблицы в документ
         document.add(table)
@@ -109,7 +118,8 @@ object pdfGenerator {
       .mkString(", ")
   }
 
-  def groupDataBySystem(data: Seq[Cables]) {
-    data.groupBy(cable => cable.system)
+  def sortWithNumbers(strings: Seq[String]) = {
+    strings.sortBy { str =>
+    }
   }
 }
