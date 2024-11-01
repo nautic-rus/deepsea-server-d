@@ -10,14 +10,48 @@ import com.itextpdf.layout.Document
 import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment, VerticalAlignment}
 import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
 import domain.deepsea.pdfGenerator.getNodes
+import org.apache.pekko.http.scaladsl.model.Uri.Path
 
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 //
 object pdfGenerator {
   def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes]): String = {
     println("cableData in def")
     try {
-      val file = Files.createTempFile("spec", ".pdf")
+      //дата
+      val currentDate = LocalDate.now()
+
+      val year = currentDate.format(DateTimeFormatter.ofPattern("yyyy"))
+      val month = currentDate.format(DateTimeFormatter.ofPattern("MM"))
+      val day = currentDate.format(DateTimeFormatter.ofPattern("dd"))
+
+//      val file = Files.createTempFile("spec", ".pdf")
+      // создание директории
+      val dirPath = Paths.get("/files")
+      val yearPath = dirPath.resolve(year)
+      if (!Files.exists(yearPath)) {
+        Files.createDirectories(yearPath)
+      }
+
+      val monthPath = yearPath.resolve(month)
+      if (!Files.exists(monthPath)) {
+        Files.createDirectories(monthPath)
+      }
+
+      val dayPath = monthPath.resolve(day)
+      if (!Files.exists(dayPath)) {
+        Files.createDirectories(dayPath)
+      }
+
+      // Создаем файл PDF в соответствующей директории
+      val fileName = "cables.pdf"
+      val filePath = dayPath.resolve(fileName)
+      val file = Files.createFile(filePath)
+
+//      val file = Files.createFile(dirPath.resolve("file2.pdf"))
+      println(file)
       val gostFont = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/GOSTtypeA.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
       val gostFontBold = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/gost_2.304_Bold.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
       val writer = new PdfWriter(file.toString)
@@ -70,9 +104,9 @@ object pdfGenerator {
             table.addCell(systemCell)
 
 
-            val sortedCables = sortWithNumbers(cablesWithNodes.map(_.cable_id)).map(cableId => cablesWithNodes.find(_.cable_id == cableId).get)
+//            val sortedCables = sortWithNumbers(cablesWithNodes.map(_.cable_id)).map(cableId => cablesWithNodes.find(_.cable_id == cableId).get)
             // Добавляем строки с информацией о кабелях
-            sortedCables.foreach { cable =>
+            cablesWithNodes.foreach { cable =>
               val nodes = getNodes(cable.cable_id, filteredNodes) // Ноды конкретного кабеля
               val cable_specN = cable.cable_spec_short.replaceAll("""^.*? - """, "")
               table.addCell(new Cell().add(new Paragraph(cable.cable_id).setFont(gostFont)))
@@ -118,8 +152,8 @@ object pdfGenerator {
       .mkString(", ")
   }
 
-  def sortWithNumbers(strings: Seq[String]) = {
-    strings.sortBy { str =>
-    }
-  }
+//  def sortWithNumbers(strings: Seq[String]) = {
+//    strings.sortBy { str =>
+//    }
+//  }
 }
