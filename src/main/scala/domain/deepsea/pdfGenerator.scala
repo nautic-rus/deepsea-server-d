@@ -15,6 +15,7 @@ import org.apache.pekko.http.scaladsl.model.Uri.Path
 import java.nio.file.{Files, Paths}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 //
 object pdfGenerator {
   def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes]): String = {
@@ -45,10 +46,26 @@ object pdfGenerator {
         Files.createDirectories(dayPath)
       }
 
+      val randomDirName = UUID.randomUUID().toString.take(10)
+      val randomDirPath = dayPath.resolve(randomDirName)
+
+      if (!Files.exists(randomDirPath)) {
+        Files.createDirectories(randomDirPath)
+      }
+
+
       // Создаем файл PDF в соответствующей директории
-      val fileName = "cables.pdf"
-      val filePath = dayPath.resolve(fileName)
+      var fileName = "cables3.pdf"
+      var filePath = randomDirPath.resolve(fileName)
       val file = Files.createFile(filePath)
+
+//      // Проверка, существует ли файл с таким именем, если да, то добавляем цифру
+//      var counter = 1
+//      while (Files.exists(filePath)) {
+//        fileName = s"cables ($counter).pdf"
+//        filePath = dayPath.resolve(fileName)
+//        counter += 1
+//      }
 
 //      val file = Files.createFile(dirPath.resolve("file2.pdf"))
       println(file)

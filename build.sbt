@@ -7,7 +7,9 @@ ThisBuild / scalaVersion := "2.13.14"
 enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 dockerExposedPorts := Seq(5055)
-dockerRepository := Some("iamdinarahello") //тут мое имя из докера
+dockerRepository := Some("files")
+//dockerExposedVolumes := Seq("/opt/docker/logs")
+dockerRepository := Some("iamdinarahello") //тут мое имя из 5докера
 
 lazy val root = (project in file("."))
   .settings(

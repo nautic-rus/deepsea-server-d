@@ -24,7 +24,8 @@ object ForanManager {
 
   //foran oracle
 
-  case class PrintCablesPdf(replyTo: ActorRef[HttpResponse]) extends ForanManagerMessage
+  case class CablesPdfURL(replyTo: ActorRef[HttpResponse]) extends ForanManagerMessage
+  case class PrintCablesPdf(replyTo: ActorRef[HttpResponse], url: String) extends ForanManagerMessage
   case class GetCables(replyTo: ActorRef[HttpResponse]) extends ForanManagerMessage
 
 
@@ -77,9 +78,9 @@ object ForanManager {
         }
         Behaviors.same
 
-      case PrintCablesPdf(replyTo) =>
-        println("PrintCablesPdf cablesssss")
-        printCablesPdf().onComplete {
+      case CablesPdfURL(replyTo) =>  //загружаю файл на сервер и возвращаю ссылку на загруженный файл
+        println("PrintCablesPdf cablesssss URL")
+        getCablesPdfURL().onComplete {
           case Success(value) =>
             replyTo.tell(TextResponse(value.asJson.noSpaces))
           case Failure(exception) =>
@@ -87,6 +88,17 @@ object ForanManager {
             replyTo.tell(TextResponse("server error"))
         }
         Behaviors.same
+
+//      case PrintCablesPdf(replyTo, url) =>  //возвращаю файл по ссылке
+//        println("GET CablesPdf")
+//        printCablesPdfbyURL(url).onComplete {
+//          case Success(value) =>
+//            replyTo.tell(TextResponse(value.asJson.noSpaces))
+//          case Failure(exception) =>
+//            logger.error(exception.toString)
+//            replyTo.tell(TextResponse("server error"))
+//        }
+//        Behaviors.same
     }
   }
 
@@ -126,8 +138,8 @@ object ForanManager {
 
 
 
-  private def printCablesPdf() = {
-    println("SQL printCablesPdf")
+  private def getCablesPdfURL() = {
+    println("URL printCablesPdf")
     for {
       filteredNodes <- getFilteredCableNodes()
       cables <- getCablesPdf()
@@ -135,6 +147,27 @@ object ForanManager {
       createPdf(cables, filteredNodes)
     }
   }
+
+//  private def printCablesPdfbyURL(url: String) = {
+//    println(" printCablesPdf")
+//    println(url)
+//
+//
+////    val responseFuture = Http().singleRequest(HttpRequest(uri = url))
+////    responseFuture.flatMap { response =>
+////      // Проверка ответа (статус 200 OK)
+////      if (response.status == StatusCodes.OK) {
+////        // Получение данных файла в виде Source[ByteString, Any]
+////        response.entity.dataBytes
+////      } else {
+////        // Обработка ошибки, если файл не был найден
+////        throw new Exception(s"Ошибка при получении файла: ${response.status}")
+////      }
+////    }
+//
+//  }
+
+//  printCablesPdfbyURL
 
   def getNodesPenetration(): Future[Seq[Nodes]] = {  //получаю кабели из таблицы пенетрейшн, чтобы в дальнейшем проверить входит ли роут туда (является ли типа пенетрейшн)
     println("getNodesPenetration")

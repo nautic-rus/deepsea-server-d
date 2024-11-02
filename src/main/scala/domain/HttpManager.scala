@@ -12,7 +12,7 @@ import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
 import domain.deepsea.{DeepseaManager, ForanManager}
 import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetIssueStages, GetMaterialsDirectory, GetProjectDoclist, GetProjectNames, GetSpecMaterials, GetTrustedUsers, GetWeightData, SaveFilters, SaveHullEsp, Str}
-import domain.deepsea.ForanManager.{GetCables, PrintCablesPdf}
+import domain.deepsea.ForanManager.{CablesPdfURL, GetCables, PrintCablesPdf}
 //import domain.deepsea.ForanManager.GetCables
 import org.slf4j.LoggerFactory
 
@@ -76,9 +76,12 @@ object HttpManager {
           (get & path("cables")) {
             forward(foran.ask(ref => GetCables(ref)))
           },
-          (get & path("cablesPdf")) {
-            println("cables pdf");
-            forward(foran.ask(ref => PrintCablesPdf(ref)))
+          (get & path("cablesPdfUrl")) {
+            println("cables pdf URL");
+            forward(foran.ask(ref => CablesPdfURL(ref)))
+          },
+          (get & path("files" / Segment / Segment / Segment / Segment / Segment)) { (year, month, day, pathId, name) =>
+            getFromFile("/files/" + List(year, month, day, pathId, name).mkString("/"))
           },
 
 
