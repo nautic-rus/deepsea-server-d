@@ -1,16 +1,16 @@
 package domain.deepsea
 
+import com.itextpdf.kernel.events.IEventHandler
 import com.itextpdf.io.font.{FontProgramFactory, PdfEncodings}
-import com.itextpdf.kernel.font.PdfFontFactory
+import com.itextpdf.kernel.events.{Event, PdfDocumentEvent}
+import com.itextpdf.kernel.font.{PdfFont, PdfFontFactory}
 import com.itextpdf.kernel.font.PdfFontFactory.EmbeddingStrategy
 import com.itextpdf.kernel.geom.PageSize
-import com.itextpdf.kernel.pdf.{PdfDocument, PdfWriter, PdfXrefTable}
-import com.itextpdf.layout.element.{Cell, Paragraph, Table}
+import com.itextpdf.kernel.pdf.{PdfDocument, PdfWriter}
+import com.itextpdf.layout.element.{AreaBreak, Cell, Paragraph, Table}
 import com.itextpdf.layout.Document
-import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment, VerticalAlignment}
+import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment}
 import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
-import domain.deepsea.pdfGenerator.getNodes
-import org.apache.pekko.http.scaladsl.model.Uri.Path
 
 import java.nio.file.{Files, Paths}
 import java.time.LocalDate
@@ -21,51 +21,44 @@ object pdfGenerator {
   def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes]): String = {
     println("cableData in def")
     try {
-      //дата
-      val currentDate = LocalDate.now()
 
-      val year = currentDate.format(DateTimeFormatter.ofPattern("yyyy"))
-      val month = currentDate.format(DateTimeFormatter.ofPattern("MM"))
-      val day = currentDate.format(DateTimeFormatter.ofPattern("dd"))
-
-//      val file = Files.createTempFile("spec", ".pdf")
-      // создание директории
-      val dirPath = Paths.get("/files")
-      val yearPath = dirPath.resolve(year)
-      if (!Files.exists(yearPath)) {
-        Files.createDirectories(yearPath)
-      }
-
-      val monthPath = yearPath.resolve(month)
-      if (!Files.exists(monthPath)) {
-        Files.createDirectories(monthPath)
-      }
-
-      val dayPath = monthPath.resolve(day)
-      if (!Files.exists(dayPath)) {
-        Files.createDirectories(dayPath)
-      }
-
-      val randomDirName = UUID.randomUUID().toString.take(10)
-      val randomDirPath = dayPath.resolve(randomDirName)
-
-      if (!Files.exists(randomDirPath)) {
-        Files.createDirectories(randomDirPath)
-      }
-
-
-      // Создаем файл PDF в соответствующей директории
-      var fileName = "cables3.pdf"
-      var filePath = randomDirPath.resolve(fileName)
-      val file = Files.createFile(filePath)
-
-//      // Проверка, существует ли файл с таким именем, если да, то добавляем цифру
-//      var counter = 1
-//      while (Files.exists(filePath)) {
-//        fileName = s"cables ($counter).pdf"
-//        filePath = dayPath.resolve(fileName)
-//        counter += 1
+      val file = Files.createTempFile("spec", ".pdf")
+//      //дата
+//      val currentDate = LocalDate.now()
+//
+//      val year = currentDate.format(DateTimeFormatter.ofPattern("yyyy"))
+//      val month = currentDate.format(DateTimeFormatter.ofPattern("MM"))
+//      val day = currentDate.format(DateTimeFormatter.ofPattern("dd"))
+//
+//      // создание директории
+//      val dirPath = Paths.get("/files")
+//      val yearPath = dirPath.resolve(year)
+//      if (!Files.exists(yearPath)) {
+//        Files.createDirectories(yearPath)
 //      }
+//
+//      val monthPath = yearPath.resolve(month)
+//      if (!Files.exists(monthPath)) {
+//        Files.createDirectories(monthPath)
+//      }
+//
+//      val dayPath = monthPath.resolve(day)
+//      if (!Files.exists(dayPath)) {
+//        Files.createDirectories(dayPath)
+//      }
+//
+//      val randomDirName = UUID.randomUUID().toString.take(10)
+//      val randomDirPath = dayPath.resolve(randomDirName)
+//
+//      if (!Files.exists(randomDirPath)) {
+//        Files.createDirectories(randomDirPath)
+//      }
+//
+//
+//      // Создаем файл PDF в соответствующей директории
+//      var fileName = "cables3.pdf"
+//      var filePath = randomDirPath.resolve(fileName)
+//      val file = Files.createFile(filePath)
 
 //      val file = Files.createFile(dirPath.resolve("file2.pdf"))
       println(file)
@@ -74,15 +67,47 @@ object pdfGenerator {
       val writer = new PdfWriter(file.toString)
       val pdf = new PdfDocument(writer)
       val document = new Document(pdf,PageSize.A4.rotate())
-
-      val columnPercentages = Array(10F, 20F, 10F, 7F, 10F, 10F, 10F, 10F,10F)
-
       val totalWidth = PageSize.A4.getHeight
 
+      printTitle(document, 1, totalWidth, gostFont);  //добавляем таблицу с титульника
+      document.add(new AreaBreak());  //разрыв страницы
+
+//      // Создаем новую таблицу с 2 столбцами и 2 строками
+//      val columnPercentagesTitle = Array(100F, 200F, 50F, 50F)
+//
+//      val pointColumnWidthsTitle = columnPercentagesTitle.map(p => (totalWidth * p / 100).toFloat)
+//      val titleTable = new Table(pointColumnWidthsTitle)
+//
+////      1ая строка
+//      titleTable.addCell(new Cell(1, 2).add(new Paragraph("КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ").setFont(gostFont)))
+//      titleTable.addCell(new Cell(1, 2).add(new Paragraph("Дата").setFont(gostFont)))
+//
+////      2ая строка
+//      titleTable.addCell(new Cell(2, 1).add(new Paragraph("ЛОГО").setFont(gostFont)))
+//      titleTable.addCell(new Cell(2, 1).add(new Paragraph("Номер чертежа").setFont(gostFont)))
+//      titleTable.addCell(new Cell().add(new Paragraph("Рев.").setFont(gostFont)))
+//      titleTable.addCell(new Cell().add(new Paragraph("Лист").setFont(gostFont)))
+//      titleTable.addCell(new Cell().add(new Paragraph("С").setFont(gostFont)))
+//      titleTable.addCell(new Cell().add(new Paragraph(pdf.getNumberOfPages.toString).setFont(gostFont)))
+//
+//      // Устанавливаем позицию таблицы в правом нижнем углу
+//      titleTable.setFixedLayout()
+//      titleTable.setMarginTop(PageSize.A4.getWidth - 150F)
+//
+//      // Добавляем таблицу в документ
+//      document.add(titleTable)
+//      document.add(new AreaBreak());  //переход на новую страницу
+
+      //footer
+//      pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(document, 1, totalWidth, gostFont))
+//      создаем основную таблицу
+      val columnPercentages = Array(10F, 20F, 10F, 7F, 10F, 10F, 10F, 10F,10F)
       val pointColumnWidths = columnPercentages.map(p => (totalWidth * p / 100).toFloat)
-
       val table = new Table(pointColumnWidths)
+      table.setMarginBottom(250F)
 
+
+      //заполняем шапку основной таблицы
       table.addCell(new Cell(2, 1).add(new Paragraph("Индекс кабеля").setFont(gostFont)))
       table.addCell(new Cell(2, 1).add(new Paragraph("Марка кабеля").setFont(gostFont)))
       table.addCell(new Cell(2, 1).add(new Paragraph("Число жил и сечение, мм2").setFont(gostFont)))
@@ -91,11 +116,9 @@ object pdfGenerator {
       val fromCell = new Cell(1, 2)
       fromCell.add(new Paragraph("Откуда идет кабель").setFont(gostFont))
       table.addCell(fromCell)
-
       val toCell = new Cell(1, 2)
       toCell.add(new Paragraph("Куда идет кабель").setFont(gostFont))
       table.addCell(toCell)
-
       // Примечание
       table.addCell(new Cell().add(new Paragraph("Примечание").setFont(gostFont)))
 
@@ -107,6 +130,7 @@ object pdfGenerator {
         table.addCell(call)
       })
 
+     pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(document, totalWidth, gostFont))
 
       //заполняем данными
       try {
@@ -120,8 +144,6 @@ object pdfGenerator {
             systemCell.setHorizontalAlignment(HorizontalAlignment.CENTER)
             table.addCell(systemCell)
 
-
-//            val sortedCables = sortWithNumbers(cablesWithNodes.map(_.cable_id)).map(cableId => cablesWithNodes.find(_.cable_id == cableId).get)
             // Добавляем строки с информацией о кабелях
             cablesWithNodes.foreach { cable =>
               val nodes = getNodes(cable.cable_id, filteredNodes) // Ноды конкретного кабеля
@@ -143,8 +165,6 @@ object pdfGenerator {
             }
           }
         }
-
-        // Добавление таблицы в документ
         document.add(table)
         document.close()
 
@@ -169,8 +189,37 @@ object pdfGenerator {
       .mkString(", ")
   }
 
-//  def sortWithNumbers(strings: Seq[String]) = {
-//    strings.sortBy { str =>
-//    }
-//  }
+  //заполняем титульник на каждой странице
+  class FooterEventListener(document: Document, totalWidth: Float, gostFont: PdfFont) extends IEventHandler {
+    override def handleEvent(event: Event): Unit = {
+      if (event.isInstanceOf[PdfDocumentEvent]) {
+        printTitle(document, 1, totalWidth, gostFont)
+      }
+    }
+  }
+
+  def printTitle(document: Document, pageNumber: Number, totalWidth: Float, gostFont: PdfFont): Unit = {
+    val columnWidthsTitle = Array(100F, 200F, 50F, 50F)
+    val tableWidth = columnWidthsTitle.sum
+
+    val titleTable = new Table(columnWidthsTitle.map(_.toFloat))
+
+    // 1ая строка
+    titleTable.addCell(new Cell(1, 2).add(new Paragraph("КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ").setFont(gostFont)))
+    titleTable.addCell(new Cell(1, 2).add(new Paragraph("Дата").setFont(gostFont)))
+
+    // 2ая строка
+    titleTable.addCell(new Cell(2, 1).add(new Paragraph("ЛОГО").setFont(gostFont)))
+    titleTable.addCell(new Cell(2, 1).add(new Paragraph("Номер чертежа").setFont(gostFont)))
+    titleTable.addCell(new Cell().add(new Paragraph("Рев.").setFont(gostFont)))
+    titleTable.addCell(new Cell().add(new Paragraph("Лист").setFont(gostFont)))
+    titleTable.addCell(new Cell().add(new Paragraph("С").setFont(gostFont)))
+    titleTable.addCell(new Cell().add(new Paragraph(pageNumber.toString).setFont(gostFont)))
+
+    // Устанавливаем позицию таблицы в правом нижнем углу
+    titleTable.setFixedPosition(PageSize.A4.getHeight-450F, 50F, 400F)
+
+    // Добавляем таблицу в документ
+    document.add(titleTable)
+  }
 }
