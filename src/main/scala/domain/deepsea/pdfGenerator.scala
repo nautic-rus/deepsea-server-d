@@ -30,7 +30,6 @@ object pdfGenerator {
 //      val file = Files.createTempFile("spec", ".pdf")
       //дата
       val currentDate = LocalDate.now()
-
       val year = currentDate.format(DateTimeFormatter.ofPattern("yyyy"))
       val month = currentDate.format(DateTimeFormatter.ofPattern("MM"))
       val day = currentDate.format(DateTimeFormatter.ofPattern("dd"))
@@ -59,13 +58,11 @@ object pdfGenerator {
         Files.createDirectories(randomDirPath)
       }
 
-
       // Создаем файл PDF в соответствующей директории
       var fileName = "file.pdf"
       var filePath = randomDirPath.resolve(fileName)
       val file = Files.createFile(filePath)
 
-//      val file = Files.createFile(dirPath.resolve("file.pdf"))
       println(file)
       val gostFont = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/GOSTtypeA.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
       val gostFontBold = PdfFontFactory.createFont(FontProgramFactory.createFont("fonts/gost_2.304_Bold.ttf"), PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_NOT_EMBEDDED)
@@ -81,10 +78,7 @@ object pdfGenerator {
       val columnPercentages = Array(15F, 20F, 15F, 7F, 10F, 10F, 10F, 10F, 15F)
       val pointColumnWidths = columnPercentages.map(p => (totalWidth * p / 100).toFloat)
       val table = new Table(pointColumnWidths).useAllAvailableWidth()
-//      table.addHeaderCell()
-//      println(s"PageSize.A4.getHeight ${PageSize.A4.getHeight} PageSize.A4.getWidth ${PageSize.A4.getWidth}" )
       table.setMarginBottom(55F)
-
 
       //заполняем шапку основной таблицы
       table.addHeaderCell(new Cell(2, 1).add(new Paragraph("Индекс кабеля").setFont(gostFont)))
@@ -150,12 +144,15 @@ object pdfGenerator {
           }
         }
 
+//        printPageBorder(pdf, 1)  //delete
+//        printPageBorder(pdf, 2)
+
         document.add(table)
         document.close()
 
         println(file.toString)
-        printDocBorder(file.toString)  //второй файл с бордерами уже
 //        file.toString
+        printDocBorder(file.toString)  //второй файл с бордерами уже
       } catch {
         case e: Throwable =>
           println(e.toString)
@@ -205,14 +202,15 @@ object pdfGenerator {
     // 2ая строка
     try {  //строка с логотипом
       val imgCell = new Cell(2, 1)
-      val imageFile = "images/logo450.png"   //не забыть заменить!!!!!!!!!!!!!!!!!
-      val data = ImageDataFactory.create(imageFile)
+//      val imageFile = "C:\\img\\logo450.png"   //не забыть заменить!!!!!!!!!!!!!!!!!
+      val imageFile = "/files/logo450.png" //закинула картинку на сервак ручками
+      val data = ImageDataFactory.create(imageFile)   //
       val img = new Image(data)
       imgCell.add(img.setAutoScale(true))
       titleTable.addCell(imgCell)
     }
     catch {
-      case e: Throwable => println(e.toString)
+      case e: Throwable => println(s"image error $e.toString")
     }
 
     titleTable.addCell(new Cell(2, 1).add(new Paragraph("Номер чертежа").setFont(gostFont)))
@@ -228,7 +226,7 @@ object pdfGenerator {
     document.add(titleTable)
   }
 
-  def printDocBorder(inputPdfPath: String): String = {
+  def printDocBorder(inputPdfPath: String): String = {  //так как нельзя менять существующий файл, то создаем новый и постранично копируем из старого
     try {
       // Открываем исходный файл
       val reader = new PdfReader(inputPdfPath)
@@ -254,12 +252,11 @@ object pdfGenerator {
         printPageBorder(outputPdf, i)
       }
 
-
       // Закрываем документы
       outputDocument.close()
       inputDocument.close()
 
-      outputPdfPath
+      outputPdfPath  //возвращаем ссылку на ужеотредактированный файл с бордерами
     } catch {
       case e: Throwable => e.toString
     }
@@ -268,20 +265,20 @@ object pdfGenerator {
   def printPageBorder(pdf: PdfDocument, pageNumber: Int): Unit = {
     try {
         val pdfPage = pdf.getPage(pageNumber)
-        println(pdfPage)
         val canvas = new PdfCanvas(pdfPage)
-        //горизонтальная сверху
-        canvas.moveTo(35, 560)
-        canvas.lineTo(806, 560)
-        //горизонтальная снизу
-        canvas.moveTo(35, 30)
-        canvas.lineTo(806, 30)
-        //вертикальная слева
-        canvas.moveTo(36, 30)
-        canvas.lineTo(36, 560)
-        //вертикальная справа
-        canvas.moveTo(806, 30)
-        canvas.lineTo(806, 560)
+        canvas.rectangle(36, 30, 770, 529)
+//        //горизонтальная сверху
+//        canvas.moveTo(35, 560)
+//        canvas.lineTo(806, 560)
+//        //горизонтальная снизу
+//        canvas.moveTo(35, 30)
+//        canvas.lineTo(806, 30)
+//        //вертикальная слева
+//        canvas.moveTo(36, 30)
+//        canvas.lineTo(36, 560)
+//        //вертикальная справа
+//        canvas.moveTo(806, 30)
+//        canvas.lineTo(806, 560)
         canvas.closePathStroke()
     } catch {
       case e: Throwable => println(e.toString)
