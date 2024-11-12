@@ -26,6 +26,7 @@ val PostgresSQLVersion = "42.7.3"
 val OracleDBVersion = "21.6.0.0.1"
 val MongoDBVersion = "4.10.0"
 val CirceVersion = "0.14.7"
+val ITextVersion = "8.0.0"
 
 libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-actor-typed" % PekkoVersion,
@@ -43,10 +44,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-hikaricp" % SlickVersion,
   "org.postgresql" % "postgresql" % PostgresSQLVersion,
   "com.oracle.database.jdbc.debug" % "ojdbc8_g" % OracleDBVersion,
-  //pdf docx apache poi
-//  "org.apache.poi" % "poi" % "5.3.0",
-//  "org.apache.poi" % "poi-ooxml" % "5.3.0",
-//  "org.apache.poi" % "poi-ooxml-lite" % "5.3.0",
-  // iText
-  "com.itextpdf" % "itext7-core" % "8.0.0"
+  "com.itextpdf" % "itext7-core" % ITextVersion
 )
