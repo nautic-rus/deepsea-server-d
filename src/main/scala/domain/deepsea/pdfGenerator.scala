@@ -3,7 +3,7 @@ package domain.deepsea
 import com.itextpdf.kernel.events.IEventHandler
 import com.itextpdf.io.font.{FontProgramFactory, PdfEncodings}
 import com.itextpdf.io.image.ImageDataFactory
-import com.itextpdf.kernel.colors.ColorConstants
+import com.itextpdf.kernel.colors.Color
 import com.itextpdf.kernel.events.{Event, PdfDocumentEvent}
 import com.itextpdf.kernel.font.{PdfFont, PdfFontFactory}
 import com.itextpdf.kernel.font.PdfFontFactory.EmbeddingStrategy
@@ -12,7 +12,7 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas
 import com.itextpdf.kernel.pdf.{PdfDocument, PdfPage, PdfReader, PdfWriter}
 import com.itextpdf.layout.element.{AreaBreak, Cell, Image, Paragraph, Table}
 import com.itextpdf.layout.Document
-import com.itextpdf.layout.borders.{Border, SolidBorder}
+import com.itextpdf.layout.borders.{Border, DashedBorder, SolidBorder}
 import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment}
 import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
 
@@ -152,7 +152,7 @@ object pdfGenerator {
 
         println(file.toString)
 //        file.toString
-        printDocBorder(file.toString)  //второй файл с бордерами уже
+        printDocBorder(file.toString)  //ссылка на второй файл с бордерами уже
       } catch {
         case e: Throwable =>
           println(e.toString)
@@ -213,9 +213,10 @@ object pdfGenerator {
       case e: Throwable => println(s"image error $e.toString")
     }
 
-    titleTable.addCell(new Cell(2, 1).add(new Paragraph("Номер чертежа").setFont(gostFont)))
+    titleTable.addCell(new Cell().setBorder(Border.NO_BORDER).add(new Paragraph("Номер чертежа").setFont(gostFont)))
     titleTable.addCell(new Cell().add(new Paragraph("Рев.").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph("Лист").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
+    titleTable.addCell(new Cell().setBorderTop(Border.NO_BORDER).add(new Paragraph("200101-880-004ВК").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph("").setFont(gostFont)))
     titleTable.addCell(new Cell().add(new Paragraph(pageNumber.toString).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
 
