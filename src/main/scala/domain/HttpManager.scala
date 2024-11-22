@@ -10,9 +10,10 @@ import org.apache.pekko.http.scaladsl.server.Directives._
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.util.Timeout
 import com.typesafe.config.ConfigFactory
-import domain.deepsea.{DeepseaManager, ForanManager}
+import domain.deepsea.{DeepseaManager, ForanManager, MongoEleManager}
 import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetIssueStages, GetMaterialsDirectory, GetProjectDoclist, GetProjectNames, GetSpecMaterials, GetTrustedUsers, GetWeightData, SaveFilters, SaveHullEsp, Str}
 import domain.deepsea.ForanManager.{CablesPdfURL, GetCables, PrintCablesPdf}
+import domain.deepsea.MongoEleManager.GetEleComplects
 //import domain.deepsea.ForanManager.GetCables
 import org.slf4j.LoggerFactory
 
@@ -29,7 +30,7 @@ object HttpManager {
 
   case class TextResponse(value: String) extends HttpResponse
 
-  def apply(system: ActorSystem[Nothing], deepsea: ActorRef[DeepseaManager.DeepseaManagerMessage], foran: ActorRef[ForanManager.ForanManagerMessage]): Future[Http.ServerBinding] = {
+  def apply(system: ActorSystem[Nothing], deepsea: ActorRef[DeepseaManager.DeepseaManagerMessage], foran: ActorRef[ForanManager.ForanManagerMessage], mongo: ActorRef[MongoEleManager.MongoEleManagerMessage]): Future[Http.ServerBinding] = {
     try {
       implicit val sys: ActorSystem[Nothing] = system
       implicit val timeout: Timeout = Duration(1, HOURS)
@@ -83,6 +84,9 @@ object HttpManager {
           (get & path("files" / Segment / Segment / Segment / Segment / Segment)) { (year, month, day, pathId, name) =>
             getFromFile("/files/" + List(year, month, day, pathId, name).mkString("/"))
           },
+          (get & path("complects") & parameter("project")) { (project) =>
+            forward(mongo.ask(ref => GetEleComplects(ref, project.toString)))
+          },
 
 
           //foran oracle
@@ -96,7 +100,7 @@ object HttpManager {
       case e: Throwable =>
         println(e.toString)
         Thread.sleep(5 * 1000)
-        HttpManager(system, deepsea, foran)
+        HttpManager(system, deepsea, foran, mongo)
     }
   }
 

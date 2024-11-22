@@ -44,5 +44,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-hikaricp" % SlickVersion,
   "org.postgresql" % "postgresql" % PostgresSQLVersion,
   "com.oracle.database.jdbc.debug" % "ojdbc8_g" % OracleDBVersion,
+  "org.mongodb.scala" %% "mongo-scala-driver" % MongoDBVersion,
   "com.itextpdf" % "itext7-core" % ITextVersion
 )
