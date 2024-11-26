@@ -75,11 +75,6 @@ object DBManager extends Codecs {
 
   def start(): Boolean = {
     try {
-//      if (checkMongo) {
-//        println("mongo works")
-//      } else {
-//        println("mongo doesnt work")
-//      }
       if (checkPostgres && checkOracle && checkMongo) {
         println("checked")
         PostgresSQL

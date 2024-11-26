@@ -13,7 +13,7 @@ import com.typesafe.config.ConfigFactory
 import domain.deepsea.{DeepseaManager, ForanManager, MongoEleManager}
 import domain.deepsea.DeepseaManager.{DeleteFilterSaved, GetFilterSaved, GetIssueStages, GetMaterialsDirectory, GetProjectDoclist, GetProjectNames, GetSpecMaterials, GetTrustedUsers, GetWeightData, SaveFilters, SaveHullEsp, Str}
 import domain.deepsea.ForanManager.{CablesPdfURL, GetCables, PrintCablesPdf}
-import domain.deepsea.MongoEleManager.GetEleComplects
+import domain.deepsea.MongoEleManager.{CreateEleComplectPdf, GetEleComplects}
 //import domain.deepsea.ForanManager.GetCables
 import org.slf4j.LoggerFactory
 
@@ -86,6 +86,9 @@ object HttpManager {
           },
           (get & path("complects") & parameter("project")) { (project) =>
             forward(mongo.ask(ref => GetEleComplects(ref, project.toString)))
+          },
+          (get & path("complectPdf") & parameter("drawingId")) { (drawingId) =>
+            forward(mongo.ask(ref => CreateEleComplectPdf(ref, drawingId.toString)))
           },
 
 

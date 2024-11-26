@@ -1,7 +1,7 @@
 package domain.local.common
 
 
-import domain.deepsea.MongoEleManager.{EleComplect, EleComplectTest}
+import domain.deepsea.MongoEleManager.EleComplect
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}

@@ -71,14 +71,14 @@ object pdfGenerator {
       val document = new Document(pdf,PageSize.A4.rotate())
       val totalWidth = PageSize.A4.getHeight
 
-      printTitle(document, 1, totalWidth, gostFont)  //добавляем таблицу с титульника
+      printTitle(document, 1, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК")  //добавляем таблицу с титульника
       document.add(new AreaBreak())  //разрыв страницы
 
 //      создаем основную таблицу
       val columnPercentages = Array(15F, 20F, 15F, 7F, 10F, 10F, 10F, 10F, 15F)
       val pointColumnWidths = columnPercentages.map(p => (totalWidth * p / 100).toFloat)
       val table = new Table(pointColumnWidths).useAllAvailableWidth()
-      table.setMarginBottom(55F)
+      table.setMarginBottom(60F)
 
       //заполняем шапку основной таблицы
       table.addHeaderCell(new Cell(2, 1).add(new Paragraph("Индекс кабеля").setFont(gostFont)))
@@ -113,7 +113,7 @@ object pdfGenerator {
         sortedGroupedData.foreach { case (system, cables) =>
           // Проверяем, есть ли хотя бы один кабель с нодами
           val cablesWithNodes = cables.filter(cable => getNodes(cable.cable_id, filteredNodes).nonEmpty)
-//          println(sort(cablesWithNodes))
+          //          println(sort(cablesWithNodes))
           val sortedCablesWithNodes = sort(cablesWithNodes)
 
 
@@ -144,14 +144,14 @@ object pdfGenerator {
           }
         }
 
-//        printPageBorder(pdf, 1)  //delete
-//        printPageBorder(pdf, 2)
+        //        printPageBorder(pdf, 1)  //delete
+        //        printPageBorder(pdf, 2)
 
         document.add(table)
         document.close()
 
         println(file.toString)
-//        file.toString
+        //        file.toString
         printDocBorder(file.toString)  //ссылка на второй файл с бордерами уже
       } catch {
         case e: Throwable =>
@@ -162,7 +162,6 @@ object pdfGenerator {
       case e: Throwable => println(e.toString)
         e.toString
     }
-
 
   }
 
@@ -182,13 +181,13 @@ object pdfGenerator {
     var p = 2
     override def handleEvent(event: Event): Unit = {
       if (event.isInstanceOf[PdfDocumentEvent]) {
-        printTitle(document, p, totalWidth, gostFont)
+        printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК")
         p = p + 1
       }
     }
   }
 
-  def printTitle(document: Document, pageNumber: Int, totalWidth: Float, gostFont: PdfFont): Unit = {
+  def printTitle(document: Document, pageNumber: Int, totalWidth: Float, gostFont: PdfFont, pdfName: String, number: String): Unit = {
     val currentDate = LocalDate.now()
     val fullDate = currentDate.format(DateTimeFormatter.ofPattern("dd.MM.yy"))
 
@@ -196,7 +195,7 @@ object pdfGenerator {
     val titleTable = new Table(columnWidthsTitle)
 
     // 1ая строка
-    titleTable.addCell(new Cell(1, 2).add(new Paragraph("КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ").setFont(gostFont)))
+    titleTable.addCell(new Cell(1, 2).add(new Paragraph(pdfName).setFont(gostFont)))
     titleTable.addCell(new Cell(1, 2).add(new Paragraph(s"Дата $fullDate").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
 
     // 2ая строка
@@ -216,7 +215,7 @@ object pdfGenerator {
     titleTable.addCell(new Cell().setBorder(Border.NO_BORDER).add(new Paragraph("Номер чертежа").setFont(gostFont)))
     titleTable.addCell(new Cell().add(new Paragraph("Рев.").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph("Лист").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
-    titleTable.addCell(new Cell().setBorderTop(Border.NO_BORDER).add(new Paragraph("200101-880-004ВК").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
+    titleTable.addCell(new Cell().setBorderTop(Border.NO_BORDER).add(new Paragraph(number).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph("").setFont(gostFont)))
     titleTable.addCell(new Cell().add(new Paragraph(pageNumber.toString).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
 
@@ -268,18 +267,6 @@ object pdfGenerator {
         val pdfPage = pdf.getPage(pageNumber)
         val canvas = new PdfCanvas(pdfPage)
         canvas.rectangle(36, 30, 770, 529)
-//        //горизонтальная сверху
-//        canvas.moveTo(35, 560)
-//        canvas.lineTo(806, 560)
-//        //горизонтальная снизу
-//        canvas.moveTo(35, 30)
-//        canvas.lineTo(806, 30)
-//        //вертикальная слева
-//        canvas.moveTo(36, 30)
-//        canvas.lineTo(36, 560)
-//        //вертикальная справа
-//        canvas.moveTo(806, 30)
-//        canvas.lineTo(806, 560)
         canvas.closePathStroke()
     } catch {
       case e: Throwable => println(e.toString)
