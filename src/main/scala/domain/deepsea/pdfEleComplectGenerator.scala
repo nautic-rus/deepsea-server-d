@@ -14,7 +14,7 @@ import com.itextpdf.layout.element.{AreaBreak, Cell, Image, Paragraph, Table}
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.borders.{Border, DashedBorder, SolidBorder}
 import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment}
-import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
+import domain.deepsea.ForanManager.{CableNodes, CableRoutesList, CablesPdf}
 import domain.deepsea.MongoEleManager.EleComplect
 import domain.deepsea.pdfGenerator.{getNodes, printDocBorder, printTitle, sort}
 
@@ -26,7 +26,7 @@ import java.util.UUID
 import scala.collection.immutable.{List, TreeMap}
 
 object pdfEleComplectGenerator {
-  def createEleComplectPdf(data: Seq[CablesPdf], complect: List[EleComplect], filteredNodes: Seq[CableNodes]): String = {
+  def createEleComplectPdf(data: Seq[CablesPdf], complect: List[EleComplect], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList]): String = {
     println("createEleComplectPdf")
     try {
 //            val file = Files.createTempFile("spec", ".pdf")
@@ -141,7 +141,7 @@ object pdfEleComplectGenerator {
             table.addCell(new Cell().add(new Paragraph("").setFont(gostFont))) // Примечание
 
             // Строка с нодами кабеля
-            val nodes = getNodes(cable.cable_id, filteredNodes) // Ноды конкретного кабеля
+            val nodes = getNodes(cable.cable_id, filteredNodes, cablesRoutesList) // Ноды конкретного кабеля
             val nodesCell = new Cell(1, 9)
             if (nodes.nonEmpty) {
               nodesCell.add(new Paragraph(nodes).setFont(gostFontBold))

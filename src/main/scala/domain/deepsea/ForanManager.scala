@@ -33,7 +33,7 @@ object ForanManager {
   @JsonCodec case class CableNodes(cable_id: String, rout_area: String, node: String)
   @JsonCodec case class CablesPdf(seqid: Long, cable_id: String, routed_status: String, from_zone_id: String, from_zone_name: String, to_zone_id: String, to_zone_name: String, from_e_id: String, from_e_name: String, to_e_id: String, to_e_name: String, segregation: String, cable_spec: String, section: String, total_length: Float, system: String, cable_spec_short: String )
   @JsonCodec case class Cables(seqid: Long, cable_id: String, routed_status: String, from_zone_id: String, from_zone_name: String, to_zone_id: String, to_zone_name: String, from_e_id: String, from_e_name: String, to_e_id: String, to_e_name: String, segregation: String, cable_spec: String, section: String, total_length: Float, system: String)
-
+  @JsonCodec case class CableRoutesList(cable_cod: String, rout_sec: String)
 
   //  рабочий код
     class CablesTable(tag: Tag) extends Table[Cables](tag, "V_CABLE") {
@@ -110,6 +110,12 @@ object ForanManager {
     ForanDB.run(sql"#$q".as[CableNodes])
   }
 
+  def getCablesRoutesList(): Future[Seq[CableRoutesList]] = {   ////
+    val q = scala.io.Source.fromResource("queres/cablesRoutes.sql").mkString
+    implicit val result = GetResult(r => CableRoutesList(r.nextString, r.nextString))
+    ForanDB.run(sql"#$q".as[CableRoutesList])
+  }
+
   //провреяю явлется ли нода кабеля типа пенетрейшн и длина = 7 символам (правило  от электриков)
   def getFilteredCableNodes() = {
     println("getFilteredCableNodes")
@@ -132,8 +138,9 @@ object ForanManager {
     for {
       filteredNodes <- getFilteredCableNodes()
       cables <- getCablesPdf()
+      cablesRoutesList <- getCablesRoutesList()
     } yield {
-      createPdf(cables, filteredNodes)
+      createPdf(cables, filteredNodes, cablesRoutesList)
     }
   }
 

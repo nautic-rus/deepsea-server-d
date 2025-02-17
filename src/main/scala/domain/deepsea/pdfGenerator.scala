@@ -14,7 +14,7 @@ import com.itextpdf.layout.element.{AreaBreak, Cell, Image, Paragraph, Table}
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.borders.{Border, DashedBorder, SolidBorder}
 import com.itextpdf.layout.properties.{HorizontalAlignment, TextAlignment}
-import domain.deepsea.ForanManager.{CableNodes, CablesPdf}
+import domain.deepsea.ForanManager.{CableNodes, CableRoutesList, CablesPdf}
 
 import java.io.FileInputStream
 import java.nio.file.{Files, Paths}
@@ -24,7 +24,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 //
 object pdfGenerator {
-  def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes]): String = {
+  def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList]): String = {
     println("cableData in def")
     try {
 //      val file = Files.createTempFile("spec", ".pdf")
@@ -112,7 +112,7 @@ object pdfGenerator {
         val sortedGroupedData = TreeMap(groupedData.toSeq.sortBy(_._1): _*)
         sortedGroupedData.foreach { case (system, cables) =>
           // Проверяем, есть ли хотя бы один кабель с нодами
-          val cablesWithNodes = cables.filter(cable => getNodes(cable.cable_id, filteredNodes).nonEmpty)
+          val cablesWithNodes = cables.filter(cable => getNodes(cable.cable_id, filteredNodes, cablesRoutesList).nonEmpty)
           //          println(sort(cablesWithNodes))
           val sortedCablesWithNodes = sort(cablesWithNodes)
 
@@ -124,7 +124,7 @@ object pdfGenerator {
 
             // Добавляем строки с информацией о кабелях
             cablesWithNodes.foreach { cable =>
-              val nodes = getNodes(cable.cable_id, filteredNodes) // Ноды конкретного кабеля
+              val nodes = getNodes(cable.cable_id, filteredNodes, cablesRoutesList ) // Ноды конкретного кабеля
               val cable_specN = cable.cable_spec_short.replaceAll("""^.*? - """, "")
               table.addCell(new Cell().add(new Paragraph(cable.cable_id).setFont(gostFont)))
               table.addCell(new Cell().add(new Paragraph(cable_specN).setFont(gostFont))) // Марка кабеля
@@ -165,10 +165,29 @@ object pdfGenerator {
 
   }
 
-  def getNodes(cable_id: String, data: Seq[CableNodes]): String = {  //выбираю ноды конкретного кабеля и формирую строку из них
-    data.filter(_.cable_id == cable_id)
-      .map(_.node)
-      .mkString(", ")
+  def getNodes(cable_id: String, data: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList]): String = {  //выбираю ноды конкретного кабеля и формирую строку из них
+    //    data.filter(_.cable_id == cable_id)
+    //      .map(_.node)
+    //      .mkString(", ")
+    val nodes = data.filter(_.cable_id == cable_id).map(_.node)
+    // Получаем список узлов из cablesRoutesList для определнного кабеля
+    val routes = cablesRoutesList.filter(_.cable_cod == cable_id)
+    //получаю строку с нодами для определенного кабеля
+    val str = routes.map(_.rout_sec).mkString(", ")
+    // алгоритм такой: нахожу в большой строке подстроку и индекс начала в этой строке. затем сортирую по индексам, так у меня ноды сортированы по тому как рано они встречаются в огромном списке
+    val indicesMap = findSubstringIndices(str, nodes)
+    val m = indicesMap.map(_._1).mkString(",")
+    m
+  }
+
+  def findSubstringIndices(text: String, substrings: Seq[String]): Seq[(String, List[Int])] = {  //вспомогательная функция, которая создает массив {node, index} где Index это индекс вхождения Node  в список всех нод этого кабеля
+    val rez = substrings.map { substring =>
+      val indices = text.indices.filter(i => text.substring(i).startsWith(substring)).toList
+      substring -> indices
+    }
+    rez.sortBy { case (substring, indices) =>
+      if (indices.isEmpty) Int.MaxValue else indices.headOption.getOrElse(Int.MaxValue)
+    }
   }
 
   def sort (arr: Seq[CablesPdf]): Seq[CablesPdf] = {

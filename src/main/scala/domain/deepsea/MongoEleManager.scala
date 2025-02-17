@@ -2,7 +2,7 @@ package domain.deepsea
 
 import domain.DBManager.{EleComplectEncoder, codecRegistry, mongoDB}
 import domain.HttpManager.{HttpResponse, TextResponse}
-import domain.deepsea.ForanManager.{getCablesPdf, getFilteredCableNodes}
+import domain.deepsea.ForanManager.{getCablesPdf, getCablesRoutesList, getFilteredCableNodes}
 import domain.deepsea.pdfEleComplectGenerator.createEleComplectPdf
 import io.circe.syntax.EncoderOps
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
@@ -63,21 +63,14 @@ object MongoEleManager {
     espCollection.find(equal("drawingId", drawingId)).toFuture().map(_.toList)
   }
 
-//  def getEleComplectsByDrawingId(drawingId: String): Future[EleComplect] = {
-//    println("getEleComplects")
-//    val espCollection: BSONCollection = mongoDB.getCollection("eleComplects")
-//    espCollection.find(BSONDocument("drawingId" -> drawingId)).one[EleComplect].map(_.head)
-//  }
-
-
-
   def getEleComplectPdfURL(drawingId: String): Future[String] = {
     for {
       cables <- getCablesPdf()
       filteredNodes <- getFilteredCableNodes()
       complect <- getEleComplectsByDrawingId(drawingId)
+      cablesRoutesList <- getCablesRoutesList()  //получить список нод кабеля в правильном порядке
     } yield {
-      createEleComplectPdf(cables, complect, filteredNodes)
+      createEleComplectPdf(cables, complect, filteredNodes, cablesRoutesList)
     }
   }
 }
