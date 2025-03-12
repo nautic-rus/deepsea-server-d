@@ -4,7 +4,7 @@ import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import domain.DBManager.ForanDB
 import domain.HttpManager.{HttpResponse, TextResponse}
-import domain.deepsea.pdfGenerator.createPdf
+//import domain.deepsea.pdfGenerator.createPdf
 import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import org.slf4j.LoggerFactory
@@ -78,16 +78,16 @@ object ForanManager {
         }
         Behaviors.same
 
-      case CablesPdfURL(replyTo) =>  //загружаю файл на сервер и возвращаю ссылку на загруженный файл
-        println("PrintCablesPdf cablesssss URL")
-        getCablesPdfURL().onComplete {
-          case Success(value) =>
-            replyTo.tell(TextResponse(value.asJson.noSpaces))
-          case Failure(exception) =>
-            logger.error(exception.toString)
-            replyTo.tell(TextResponse("server error"))
-        }
-        Behaviors.same
+//      case CablesPdfURL(replyTo) =>  //загружаю файл на сервер и возвращаю ссылку на загруженный файл
+//        println("PrintCablesPdf cablesssss URL")
+//        getCablesPdfURL().onComplete {
+//          case Success(value) =>
+//            replyTo.tell(TextResponse(value.asJson.noSpaces))
+//          case Failure(exception) =>
+//            logger.error(exception.toString)
+//            replyTo.tell(TextResponse("server error"))
+//        }
+//        Behaviors.same
     }
   }
 
@@ -133,16 +133,16 @@ object ForanManager {
 
 
 
-  private def getCablesPdfURL() = {
-    println("URL printCablesPdf")
-    for {
-      filteredNodes <- getFilteredCableNodes()
-      cables <- getCablesPdf()
-      cablesRoutesList <- getCablesRoutesList()
-    } yield {
-      createPdf(cables, filteredNodes, cablesRoutesList)
-    }
-  }
+//  private def getCablesPdfURL() = {
+//    println("URL printCablesPdf")
+//    for {
+//      filteredNodes <- getFilteredCableNodes()
+//      cables <- getCablesPdf()
+//      cablesRoutesList <- getCablesRoutesList()
+//    } yield {
+//      createPdf(cables, filteredNodes, cablesRoutesList)
+//    }
+//  }
 
   def getNodesPenetration(): Future[Seq[Nodes]] = {  //получаю кабели из таблицы пенетрейшн, чтобы в дальнейшем проверить входит ли роут туда (является ли типа пенетрейшн)
     println("getNodesPenetration")

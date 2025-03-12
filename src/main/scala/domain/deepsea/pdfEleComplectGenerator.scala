@@ -184,9 +184,10 @@ object pdfEleComplectGenerator {
     var p = 2
     override def handleEvent(event: Event): Unit = {
       if (event.isInstanceOf[PdfDocumentEvent]) {
+        println("if" + p)
         printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ", pdfNumber)
-        p = p + 1
       }
+      p = p + 1
     }
   }
 }
