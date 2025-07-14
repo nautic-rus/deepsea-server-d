@@ -20,7 +20,7 @@ object MongoEleManager {
   sealed trait MongoEleManagerMessage
 
   case class GetEleComplects(replyTo: ActorRef[HttpResponse], project: String) extends MongoEleManagerMessage
-  case class CreateEleComplectPdf(replyTo: ActorRef[HttpResponse], drawingId: String) extends MongoEleManagerMessage
+  case class CreateEleComplectPdf(replyTo: ActorRef[HttpResponse], drawingId: String, rev: String) extends MongoEleManagerMessage
 
   case class EleComplect(drawingId: String = "", drawingDescr: String = "", deck: String = "", project: String = "P701", systemNames: List[String] = List.empty[String], zoneNames: List[String] = List.empty[String])  //комплекты из монги со стр tools/ele
 
@@ -38,9 +38,9 @@ object MongoEleManager {
         }
         Behaviors.same
 
-      case CreateEleComplectPdf(replyTo, drawingId) =>  //генерирую и загружаю файл на сервер и возвращаю ссылку на загруженный файл
+      case CreateEleComplectPdf(replyTo, drawingId,rev) =>  //генерирую и загружаю файл на сервер и возвращаю ссылку на загруженный файл
         println("PrintCablesPdf cablesssss URL")
-        getEleComplectPdfURL(drawingId).onComplete {
+        getEleComplectPdfURL(drawingId, rev).onComplete {
           case Success(value) =>
             replyTo.tell(TextResponse(value.asJson.noSpaces))
           case Failure(exception) =>
@@ -63,14 +63,14 @@ object MongoEleManager {
     espCollection.find(equal("drawingId", drawingId)).toFuture().map(_.toList)
   }
 
-  def getEleComplectPdfURL(drawingId: String): Future[String] = {
+  def getEleComplectPdfURL(drawingId: String, rev: String): Future[String] = {
     for {
       cables <- getCablesPdf()
       filteredNodes <- getFilteredCableNodes()
       complect <- getEleComplectsByDrawingId(drawingId)
       cablesRoutesList <- getCablesRoutesList()  //получить список нод кабеля в правильном порядке
     } yield {
-      createEleComplectPdf(cables, complect, filteredNodes, cablesRoutesList)
+      createEleComplectPdf(cables, complect, filteredNodes, cablesRoutesList, rev)
     }
   }
 }

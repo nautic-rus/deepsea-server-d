@@ -24,7 +24,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 //
 object pdfGenerator {
-  def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList]): String = {
+  def createPdf(data: Seq[CablesPdf], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList], rev: String): String = {
     println("cableData in def")
     try {
 //      val file = Files.createTempFile("spec", ".pdf")
@@ -71,7 +71,7 @@ object pdfGenerator {
       val document = new Document(pdf,PageSize.A4.rotate())
       val totalWidth = PageSize.A4.getHeight
 
-      printTitle(document, 1, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК")  //добавляем таблицу с титульника
+      printTitle(document, 1, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК", rev)  //добавляем таблицу с титульника
       document.add(new AreaBreak())  //разрыв страницы
 
 //      создаем основную таблицу
@@ -104,7 +104,7 @@ object pdfGenerator {
       })
 
 
-      pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(pdf, document, totalWidth, gostFont))
+      pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(pdf, document, totalWidth, gostFont, rev))
 
       //заполняем данными
       try {
@@ -196,17 +196,17 @@ object pdfGenerator {
 
 
   //заполняем титульник на каждой странице
-  class FooterEventListener(pdf: PdfDocument, document: Document, totalWidth: Float, gostFont: PdfFont) extends IEventHandler {
+  class FooterEventListener(pdf: PdfDocument, document: Document, totalWidth: Float, gostFont: PdfFont, rev: String) extends IEventHandler {
     var p = 2
     override def handleEvent(event: Event): Unit = {
       if (event.isInstanceOf[PdfDocumentEvent]) {
-        printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК")
+        printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ МАГИСТРАЛЬНЫХ КАБЕЛЕЙ", "200101-880-004ВК", rev)
         p = p + 1
       }
     }
   }
 
-  def printTitle(document: Document, pageNumber: Int, totalWidth: Float, gostFont: PdfFont, pdfName: String, number: String): Unit = {
+  def printTitle(document: Document, pageNumber: Int, totalWidth: Float, gostFont: PdfFont, pdfName: String, number: String, rev: String): Unit = {
     println(pageNumber)
     val currentDate = LocalDate.now()
     val fullDate = currentDate.format(DateTimeFormatter.ofPattern("dd.MM.yy"))
@@ -236,7 +236,7 @@ object pdfGenerator {
     titleTable.addCell(new Cell().add(new Paragraph("Рев.").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph("Лист").setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().setBorderTop(Border.NO_BORDER).add(new Paragraph(number).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
-    titleTable.addCell(new Cell().add(new Paragraph("").setFont(gostFont)))
+    titleTable.addCell(new Cell().add(new Paragraph(rev).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
     titleTable.addCell(new Cell().add(new Paragraph(pageNumber.toString).setFont(gostFont).setTextAlignment(TextAlignment.CENTER)))
 
     // Устанавливаем позицию таблицы в правом нижнем углу

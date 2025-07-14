@@ -24,7 +24,7 @@ object ForanManager {
 
   //foran oracle
 
-  case class CablesPdfURL(replyTo: ActorRef[HttpResponse]) extends ForanManagerMessage
+  case class CablesPdfURL(replyTo: ActorRef[HttpResponse], rev: String) extends ForanManagerMessage
   case class PrintCablesPdf(replyTo: ActorRef[HttpResponse], url: String) extends ForanManagerMessage
   case class GetCables(replyTo: ActorRef[HttpResponse]) extends ForanManagerMessage
 
@@ -78,9 +78,9 @@ object ForanManager {
         }
         Behaviors.same
 
-      case CablesPdfURL(replyTo) =>  //загружаю файл на сервер и возвращаю ссылку на загруженный файл
+      case CablesPdfURL(replyTo, rev) =>  //загружаю файл на сервер и возвращаю ссылку на загруженный файл
         println("PrintCablesPdf cablesssss URL")
-        getCablesPdfURL().onComplete {
+        getCablesPdfURL(rev).onComplete {
           case Success(value) =>
             replyTo.tell(TextResponse(value.asJson.noSpaces))
           case Failure(exception) =>
@@ -133,14 +133,14 @@ object ForanManager {
 
 
 
-  private def getCablesPdfURL() = {
+  private def getCablesPdfURL(rev: String) = {
     println("URL printCablesPdf")
     for {
       filteredNodes <- getFilteredCableNodes()
       cables <- getCablesPdf()
       cablesRoutesList <- getCablesRoutesList()
     } yield {
-      createPdf(cables, filteredNodes, cablesRoutesList)
+      createPdf(cables, filteredNodes, cablesRoutesList, rev)
     }
   }
 

@@ -26,7 +26,7 @@ import java.util.UUID
 import scala.collection.immutable.{List, TreeMap}
 
 object pdfEleComplectGenerator {
-  def createEleComplectPdf(data: Seq[CablesPdf], complect: List[EleComplect], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList]): String = {
+  def createEleComplectPdf(data: Seq[CablesPdf], complect: List[EleComplect], filteredNodes: Seq[CableNodes], cablesRoutesList: Seq[CableRoutesList], rev: String): String = {
     println("createEleComplectPdf")
     try {
 //            val file = Files.createTempFile("spec", ".pdf")
@@ -76,7 +76,7 @@ object pdfEleComplectGenerator {
 
       val pdfNumber: String = complect(0).drawingId.concat("ВК") //номер чертежа для документа
       println(pdfNumber);
-      printTitle(document, 1, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ", pdfNumber)  //добавляем таблицу с титульника
+      printTitle(document, 1, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ", pdfNumber, rev)  //добавляем таблицу с титульника
       document.add(new AreaBreak())  //разрыв страницы.
 
       //      создаем основную таблицу
@@ -109,7 +109,7 @@ object pdfEleComplectGenerator {
       })
 
 
-      pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(pdf, document, totalWidth, gostFont, pdfNumber))
+      pdf.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventListener(pdf, document, totalWidth, gostFont, pdfNumber, rev))
 
       try {
       } catch {
@@ -180,12 +180,12 @@ object pdfEleComplectGenerator {
 
 
   //заполняем титульник на каждой странице
-  class FooterEventListener(pdf: PdfDocument, document: Document, totalWidth: Float, gostFont: PdfFont, pdfNumber: String) extends IEventHandler {
+  class FooterEventListener(pdf: PdfDocument, document: Document, totalWidth: Float, gostFont: PdfFont, pdfNumber: String, rev: String) extends IEventHandler {
     var p = 2
     override def handleEvent(event: Event): Unit = {
       if (event.isInstanceOf[PdfDocumentEvent]) {
         println("if" + p)
-        printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ", pdfNumber)
+        printTitle(document, p, totalWidth, gostFont, "КАБЕЛЬНЫЙ ЖУРНАЛ", pdfNumber, rev)
       }
       p = p + 1
     }

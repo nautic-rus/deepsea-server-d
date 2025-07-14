@@ -77,9 +77,9 @@ object HttpManager {
           (get & path("cables")) {
             forward(foran.ask(ref => GetCables(ref)))
           },
-          (get & path("cablesPdfUrl")) {
+          (get & path("cablesPdfUrl") & parameter("rev")) { (rev) =>
             println("cables pdf URL");
-            forward(foran.ask(ref => CablesPdfURL(ref)))
+            forward(foran.ask(ref => CablesPdfURL(ref, rev.toString)))
           },
           (get & path("files" / Segment / Segment / Segment / Segment / Segment)) { (year, month, day, pathId, name) =>
             getFromFile("/files/" + List(year, month, day, pathId, name).mkString("/"))
@@ -87,8 +87,8 @@ object HttpManager {
           (get & path("complects") & parameter("project")) { (project) =>
             forward(mongo.ask(ref => GetEleComplects(ref, project.toString)))
           },
-          (get & path("complectPdf") & parameter("drawingId")) { (drawingId) =>
-            forward(mongo.ask(ref => CreateEleComplectPdf(ref, drawingId.toString)))
+          (get & path("complectPdf") & parameter("drawingId", "rev")) { (drawingId, rev) =>
+            forward(mongo.ask(ref => CreateEleComplectPdf(ref, drawingId.toString, rev.toString)))
           },
 
 
